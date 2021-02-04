@@ -2,8 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, \
                                         PermissionsMixin
 from django.conf import settings
-from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _, pgettext_lazy
+from django.utils.translation import ugettext_lazy as _
 # LISTS
 import core.constants.states as states
 import core.constants.breed_list as breed_list
@@ -13,7 +12,7 @@ import core.constants.policy_limit_factor_list as policy_limit_factor_list
 import uuid
 
 import datetime
-from dateutil.relativedelta import *
+from dateutil.relativedelta import relativedelta
 
 from model_utils import Choices
 
@@ -24,20 +23,25 @@ def next_year():
     endDate = startDate.replace(startDate.year + 1)
     return f'{endDate}'
 
+
 def payment_list():
     """A list with all the difrrent dates"""
     startDate = datetime.date.today()
+    # startDate = startDate+relativedelta(day=+31)
     PAYMENT_LIST = [
         f'{startDate+relativedelta(months=+1)}',
         f'{startDate+relativedelta(months=+2)}',
         f'{startDate+relativedelta(months=+3)}',
         f'{startDate+relativedelta(months=+4)}',
         f'{startDate+relativedelta(months=+5)}',
+        f'{startDate+relativedelta(months=+6)}',
+        f'{startDate+relativedelta(months=+7)}',
+        f'{startDate+relativedelta(months=+8)}',
+        f'{startDate+relativedelta(months=+9)}',
+        f'{startDate+relativedelta(months=+10)}',
+        f'{startDate+relativedelta(months=+11)}',
         ]
     return PAYMENT_LIST
-    # MONTHS_LIST = Choices(
-    #     (0, '1', _(dateM.replace(dateM.month + 1))),
-    # )
 
 
 class UserManager(BaseUserManager):
@@ -109,19 +113,110 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True
     )
-
+    customerId_oneinc = models.CharField(
+        null=True,
+        max_length=255,
+    )
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
 
 
-class Plan(models.Model):
-    """A single plan for a single user"""
-    name = models.CharField(_('name'), max_length=100)
-    description = models.TextField(_('description'), blank=True)
+class Quote(models.Model):
+    """Quote to be assign to user later on"""
+    GENDER_LIST = Choices(
+        ('Cat', ['Male', 'Female']),
+        ('Dog', ['Male', 'Female'])
+    )
+    BREEDING_ENDORSEMENT_LIST = Choices(
+        ('No'),
+        ('Male'),
+        ('Female')
+    )
+    quote_id = models.CharField(
+        max_length=255,
+        primary_key=True,
+        unique=True, default=uuid.uuid4,
+        blank=False,
+        null=False,
+    )
+    pet_name = models.CharField(
+        max_length=255,
+        default='MAX'
+    )
+    base_rate = models.DecimalField(
+        default=54.11,
+        max_digits=4,
+        decimal_places=2
+    )
+    geographical_factor = models.DecimalField(
+        default=0,
+        max_digits=4,
+        decimal_places=2
+    )
+    gender_factor = models.CharField(
+        blank=True,
+        max_length=6,
+        choices=GENDER_LIST,
+    )
+    breed_factor = models.CharField(
+        blank=True,
+        max_length=255,
+        choices=breed_list.BREED_LIST
+    )
+    age_factor = models.CharField(
+        blank=True,
+        max_length=255,
+        choices=age_list.AGE_LIST
+    )
+    policy_limit_factor = models.CharField(
+        blank=True,
+        max_length=255,
+        choices=policy_limit_factor_list.POLICY_LIMIT_FACTOR_LIST
+    )
+    deductibale_factor = models.PositiveIntegerField(
+        default=500
+    )
+    coinsurance_factor = models.PositiveIntegerField(
+        default=50,
+    )
+    exam_fee_factor = models.BooleanField(
+        default=False
+    )
+    holistic_alternative_treatment_factor = models.BooleanField(
+        default=False
+    )
+    boarding_advertising_holoday_cancellation_rate = models.BooleanField(
+        default=False
+    )
+    breeding_endorsement = models.CharField(
+        blank=True,
+        max_length=255,
+        choices=BREEDING_ENDORSEMENT_LIST
+    )
+    discount_factor = models.CharField(
+        blank=True,
+        max_length=255,
+    )
+    digital_partner_factor = models.BooleanField(
+        default=False
+    )
+    affinity_group_factor = models.BooleanField(
+        default=False
+    )
+    smart_collar_factor = models.BooleanField(
+        default=False
+    )
+    employee_benefit_factor = models.DecimalField(
+        default=0,
+        max_digits=4,
+        decimal_places=2
+    )
     default = models.BooleanField(
         null=True,
-        help_text=_('Both "Unknown" and "No" means that the plan is not default'),
+        help_text=_(
+            'Both "Unknown" and "No" means that the plan is not default'
+        ),
         default=None,
         db_index=True,
         unique=True,
@@ -134,19 +229,19 @@ class Plan(models.Model):
         _('visible'), default=True, db_index=True,
         help_text=_('Is visible in current offer')
     )
-    created = models.DateTimeField(_('created'), db_index=True)
-    customized = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True,
-        verbose_name=_('customized'),
-        on_delete=models.CASCADE
+    premium_cost = models.DecimalField(
+        default=50,
+        max_digits=4,
+        decimal_places=2
     )
+    created = models.DateTimeField(_('created'), db_index=True)
 
     def __str__(self):
-        return self.name
+        return self.quote_id
 
 
-class PaymentList(models.Model):
-    """List of payments dates"""
+class PaymentListMonth(models.Model):
+    """List of payments dates for monthly payment option"""
     paymentList_id = models.CharField(
         max_length=255,
         primary_key=True,
@@ -157,13 +252,20 @@ class PaymentList(models.Model):
     )
     myList = models.TextField(null=True, default=payment_list)
 
+    quote_number = models.OneToOneField(
+        'Quote',
+        default=None,
+        verbose_name=_('quote'),
+        on_delete=models.CASCADE
+    )
+
     def __str__(self):
         return self.paymentList_id
 
 
-class UserPlan(models.Model):
+class Policy(models.Model):
     """Currently selected plan for user account"""
-    userPlan_id = models.CharField(
+    policy_id = models.CharField(
         max_length=255,
         primary_key=True,
         unique=True,
@@ -171,87 +273,24 @@ class UserPlan(models.Model):
         blank=False,
         null=False,
     )
-    user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, verbose_name=_('user'),
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('user'),
         on_delete=models.CASCADE
     )
-    plan = models.ForeignKey('Plan', verbose_name=_('plan'), on_delete=models.CASCADE)
+    # quote_number = models.ForeignKey(
+    #     'Quote',
+    #     verbose_name=_('quote'),
+    #     on_delete=models.CASCADE
+    # )
+    paymentListMonth_number = models.OneToOneField(
+        'PaymentListMonth',
+        verbose_name=_('payment list Month'),
+        on_delete=models.CASCADE
+    )
     expire = models.DateField(
         _('expire'), default=next_year, blank=True, null=True, db_index=True)
-    active = models.BooleanField(_('active'), default=True, db_index=True)
-    payment_list = models.ForeignKey('PaymentList', default=datetime.date.today(), verbose_name=_('payment list'), on_delete=models.CASCADE)
+    active = models.BooleanField(_('active'), default=False, db_index=True)
 
     def __str__(self):
-        return self.userPlan_id
-
-    def is_active(self):
-        return self.active
-
-    def expire_date(self):
-        return date.today() - self.DOB.year
-
-    def is_expired(self):
-        if self.expire is None:
-            return False
-        else:
-            return self.expire < date.today()
-
-    def days_left(self):
-        if self.expire is None:
-            return None
-        else:
-            return (self.expire - date.today()).days
-
-    def clean_activation(self):
-        errors = plan_validation(self.user)
-        if not errors['required_to_activate']:
-            plan_validation(self.user, on_activation=True)
-            self.activate()
-        else:
-            self.deactivate()
-        return errors
-
-    def activate(self):
-        if not self.active:
-            self.active = True
-            self.save()
-            account_activated.send(sender=self, user=self.user)
-
-    def deactivate(self):
-        if self.active:
-            self.active = False
-            self.save()
-            account_deactivated.send(sender=self, user=self.user)
-
-    def initialize(self):
-        """
-        Set up user plan for first use
-        """
-        if not self.is_active():
-            # Plans without pricings don't need to expire
-            if self.expire is None and self.plan.planpricing_set.count():
-                self.expire = now() + timedelta(
-                    days=getattr(settings, 'PLANS_DEFAULT_GRACE_PERIOD', 30))
-            self.activate()  # this will call self.save()
-
-    @classmethod
-    def create_for_user(cls, user):
-        default_plan = Plan.get_default_plan()
-        if default_plan is not None:
-            return UserPlan.objects.create(
-                user=user,
-                plan=default_plan,
-                active=False,
-                expire=None,
-            )
-
-    @classmethod
-    def create_for_users_without_plan(cls):
-        userplans = get_user_model().objects.filter(userplan=None)
-        for user in userplans:
-            UserPlan.create_for_user(user)
-        return userplans
-
-    def get_current_plan(self):
-        """ Tiny helper, very usefull in templates """
-        return Plan.get_current_plan(self.user)
+        return self.policy_id

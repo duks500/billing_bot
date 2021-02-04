@@ -53,9 +53,9 @@ class UserAdmin(BaseUserAdmin):
 
 # Register our useradamin to the admin
 admin.site.register(models.User, UserAdmin)
-# Register our Plan to the admin
-admin.site.register(models.Plan)
-# Register our UserPlan to the admin
-admin.site.register(models.UserPlan)
-# Register our PaymentList to the admin
-admin.site.register(models.PaymentList)
+# Register our Quote to the admin
+admin.site.register(models.Quote)
+# # Register our Policy to the admin
+admin.site.register(models.Policy)
+# # Register our PaymentListMonth to the admin
+admin.site.register(models.PaymentListMonth)

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block body %}
+
+    <h3>{{ object.quote_id }}</h3>
+    <h4>{{ object.pet_name }}</h4>
+    <h4>{{ object.base_rate }}</h4>
+    <h4>{{ object.geographical_factor }}</h4>
+    <h4>{{ object.gender_factor }}</h4>
+    <h4>{{ object.breed_factor }}</h4>
+    <h4>{{ object.age_factor }}</h4>
+    <h4>{{ object.policy_limit_factor }}</h4>
+    <h4>{{ object.deductibale_factor }}</h4>
+    <h4>{{ object.coinsurance_factor }}</h4>
+    <h4>{{ object.holistic_alternative_treatment_factor }}</h4>
+    <h4>{{ object.boarding_advertising_holoday_cancellation_rate }}</h4>
+    <h4>{{ object.breeding_endorsement }}</h4>
+    <h4>{{ object.discount_factor }}</h4>
+    <h4>{{ object.digital_partner_factor }}</h4>
+    <h4>{{ object.affinity_group_factor }}</h4>
+    <h4>{{ object.smart_collar_factor }}</h4>
+    <h4>{{ object.employee_benefit_factor }}</h4>
+    <h4>{{ object.default }}</h4>
+    <h4>{{ object.available }}</h4>
+    <h4>{{ object.visible }}</h4>
+    <h4>{{ object.created }}</h4>
+
+    <form method="POST" action="{% url 'billingBot:select' %}">
+    {% csrf_token %}
+    <small>Your current plan</small>
+    <input type="hidden" name="quote_id" value="{{ object.quote_id }}">
+    </form>
+
+
+{% endblock %}

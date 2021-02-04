@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block body %}
+
+  {% for quote in object_list %}
+    <h3>{{ quote.quote_id }}</h3>
+    <h3>{{ quote.pet_name }}</h3>
+  {% endfor %}
+
+{% endblock %}

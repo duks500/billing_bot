@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block body %}
+
+  {% for policy in object_list %}
+    <h3>{{ policy.policy_id }}</h3>
+    <h5>{{ policy.user }}</h5>
+    <h5>{{ policy.policy_quote_number }}</h5>
+  {% endfor %}
+
+{% endblock %}
