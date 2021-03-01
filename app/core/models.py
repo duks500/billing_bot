@@ -113,7 +113,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True
     )
-    customerId_oneinc = models.CharField(
+    token_oneinc = models.CharField(
         null=True,
         max_length=255,
     )
@@ -133,10 +133,16 @@ class Quote(models.Model):
         ('Male'),
         ('Female')
     )
+    RECURRENCE_LIST = Choices(
+        ('Monthly'),
+        ('Yearly')
+    )
+
     quote_id = models.CharField(
         max_length=255,
         primary_key=True,
-        unique=True, default=uuid.uuid4,
+        unique=True,
+        default=uuid.uuid4,
         blank=False,
         null=False,
     )
@@ -235,6 +241,12 @@ class Quote(models.Model):
         decimal_places=2
     )
     created = models.DateTimeField(_('created'), db_index=True)
+    recurrence = models.CharField(
+        blank=True,
+        max_length=255,
+        choices=RECURRENCE_LIST,
+        default=RECURRENCE_LIST.Yearly
+    )
 
     def __str__(self):
         return self.quote_id
@@ -294,3 +306,14 @@ class Policy(models.Model):
 
     def __str__(self):
         return self.policy_id
+
+    def make_monthly_payment(self):
+        """Check whetre there is a need to charge the user"""
+        current_date = datetime.date.today()
+        next_payment = self.paymentListMonth_number.myList[0]
+
+        if current_date == next_payment:
+            """make a payment"""
+            return self.paymentListMonth_number.myList[0]
+        else:
+            return None

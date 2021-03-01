@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 import os
 from pathlib import Path
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,7 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'billingBot'
+    'billingBot',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
@@ -80,18 +82,25 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 DATABASES = {
     'default': {
-        # The database engine that we are using
-        'ENGINE': 'django.db.backends.postgresql',
-        # The HOST = db
-        'HOST': os.environ.get('DB_HOST'),
-        # The NAME = app
-        'NAME': os.environ.get('DB_NAME'),
-        # The USER = postgres
-        'USER': os.environ.get('DB_USER'),
-        # The PASSWORD = suppersecretpassword
-        'PASSWORD': os.environ.get('Db_PASS')
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         # The database engine that we are using
+#         'ENGINE': 'django.db.backends.postgresql',
+#         # The HOST = db
+#         'HOST': os.environ.get('DB_HOST'),
+#         # The NAME = app
+#         'NAME': os.environ.get('DB_NAME'),
+#         # The USER = postgres
+#         'USER': os.environ.get('DB_USER'),
+#         # The PASSWORD = suppersecretpassword
+#         'PASSWORD': os.environ.get('Db_PASS')
+#     }
+# }
 
 
 # Password validation
@@ -133,3 +142,31 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'core.User'
+
+# CELERY STUFF
+BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'US/Eastern'
+
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+# Let's make things happen
+CELERY_BEAT_SCHEDULE = {
+ 'send-summary-every-hour': {
+       'task': 'summary',
+        # There are 4 ways we can handle time, read further
+       'schedule': 3600.0,
+        # If you're using any arguments
+       'args': ('We don’t need any',),
+    },
+    # Executes every Friday at 4pm
+    'send-notification-on-friday-afternoon': {
+         'task': 'my_app.tasks.send_notification',
+         'schedule': crontab(hour=16, day_of_week=5),
+        },
+}
+
+#One inc
+AUTHENTICATIONKEY = '473c85b4-c63b-4bec-8526-90e12bec34af'

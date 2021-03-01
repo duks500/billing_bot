@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body %}
+
+{% if messages %}
+    {% for message in messages %}
+        {% if "success_verify" in message.tags %}
+                <div class="alert alert-success" role="edit">
+                <p class="{{ message.tags }}" id="message-center">{{ message }}</p>
+        {% elif "InvalidCardNumber" in message.tags %}
+                <div class="alert alert-info" role="send">
+                <p class="{{ message.tags }}" id="message-center">{{ message }}</p>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+
+<form method="post">
+    {% csrf_token %}
+    {{ form1 }}
+    <p></p>
+    <!-- {{ form2 }} -->
+    <input type="submit" value="Submit">
+</form>
+
+{% endblock %}

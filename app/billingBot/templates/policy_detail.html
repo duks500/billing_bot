@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 {% block body %}
-    <h3>{{ object.policy_id }}</h3>
-    <h4>{{ object.user }}</h4>
-    <h4>{{ object.policy_quote_number }}</h4>
-    <h4>{{ object.policy_paymentListMonth_number.myList }}</h4>
-    <h4>{{ object.expire }}</h4>
-    <h4>{{ object.active }}</h4>
+    <p>tes1t</p>
+    <h3>{{ policy.policy_id }}</h3>
+    <h4>{{ policy.user }}</h4>
+    <h4>{{ policy.policy_quote_number }}</h4>
+    <h4>{{ policy.policy_paymentListMonth_number.myList }}</h4>
+    <h4>{{ policy.expire }}</h4>
+    <h4>{{ policy.active }}</h4>
+    <h4>{{ policy.paymentListMonth_number.quote_number.recurrence }}</h4>
+    <h4>{{ policy.paymentListMonth_number.myList }}</h4>
 {% endblock %}

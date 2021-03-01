@@ -31,6 +31,7 @@ class UserAdmin(BaseUserAdmin):
                 'is_active',
                 'is_staff',
                 'is_superuser',
+                'token_oneinc',
             )
         }),
         (_('Important dates'), {
